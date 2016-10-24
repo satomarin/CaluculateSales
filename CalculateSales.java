@@ -23,16 +23,18 @@ public class CalculateSales {
 		}
 		
 		//5.args[0]があるかないか
-		if(args[0] == null){
+		File argsFile = new File(args[0]);
+		if (!( argsFile.exists())){
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 		}
 		
 		
+		
 		//1.1支店定義ファイルがあるかの確認
 		File branchFile = new File(args[0] + File.separator + "branch.lst");
 		if (!( branchFile.exists())){
-			System.out.println("支店定義ファイルが存在しません。");
+			System.out.println("支店定義ファイルが存在しません");
 			return;
 		}
 		
@@ -106,7 +108,7 @@ public class CalculateSales {
 		//商品定義ファイルがあるかの確認
 		File commodityFile = new File(args[0]+ File.separator + "commodity.lst");
 		if (!commodityFile.exists()){
-			System.out.println("商品定義ファイルが存在しません。");
+			System.out.println("商品定義ファイルが存在しません");
 			return;
 		}
 		
@@ -203,7 +205,7 @@ public class CalculateSales {
 				//List:rcdに.rcdファイルを格納
 				rcd.add(allFiles[i]);
 				
-				//List:rcdnameにファイル名の拡数字のみを格納
+				//List:rcdnameにファイル名の各数字のみを格納
 				rcdname.add(allFiles[i].getName().substring(0,8));
 				
 			}
@@ -251,7 +253,7 @@ public class CalculateSales {
 				}
 				
 				if(eachList.size() != 3){
-					System.out.println(rcd.get(i) + "のフォーマットが不正です");
+					System.out.println(allFiles[i].getName() + "のフォーマットが不正です");
 					return;
 				}
 				
@@ -264,24 +266,24 @@ public class CalculateSales {
 				
 				//上記データと1/2の定義ファイルのmapを比較、各項目がちゃんとあるか確認
 				if (!(branch.containsKey(branchcode))){
-					System.out.println(rcd.get(i) + "の支店コードが不正です");
+					System.out.println(allFiles[i].getName() + "の支店コードが不正です");
 					return;
 				}
 				if (!(commodity.containsKey(commoditycode))){
-					System.out.println(rcd.get(i) + "の商品コードが不正です");
+					System.out.println(allFiles[i].getName() + "の商品コードが不正です");
 					return;
 				}
 				
 				
 				//合計を計算
-				long brankari = branchFee.get(branchcode);
-				branchTotal = brankari + totalFee;
+				long branchPrice = branchFee.get(branchcode);
+				branchTotal = branchPrice + totalFee;
 				
-				long prekari = commodityFee.get(commoditycode);
-				commodityTotal = prekari + totalFee;
+				long commodityPrice = commodityFee.get(commoditycode);
+				commodityTotal = commodityPrice + totalFee;
 				
 				
-				if((branchTotal >= 9999999999.9) || (commodityTotal >= 9999999999.9)){
+				if((branchTotal >= 9999999999l) || (commodityTotal >= 9999999999l)){
 					System.out.println("合計金額が10桁を超えました");
 					return;
 				}
@@ -295,14 +297,13 @@ public class CalculateSales {
 			}
 		
 		
-		}catch(IOException e){
+		}catch(IOException | NumberFormatException e){
 			
 			//もし何かしらで動かなかった場合の対処
 			System.out.println("予期せぬエラーが発生しました");
 			return;
 			
 		}finally{
-			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
 				if(rcdReader != null){
