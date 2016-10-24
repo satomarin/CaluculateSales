@@ -1,4 +1,5 @@
 package jp.co.iccom.sato_marin.CalculateSales;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -29,8 +30,8 @@ public class CalculateSales {
 		
 		
 		//1.1支店定義ファイルがあるかの確認
-		File file = new File(args[0] + File.separator + "branch.lst");
-		if (!( file.exists())){
+		File branchFile = new File(args[0] + File.separator + "branch.lst");
+		if (!( branchFile.exists())){
 			System.out.println("支店定義ファイルが存在しません。");
 			return;
 		}
@@ -42,11 +43,11 @@ public class CalculateSales {
 		
 		//3.2　Mapを使用
 		//支店-合計金額
-		HashMap<String, Long> branchrevenue = new HashMap <String, Long>(0);
+		HashMap<String, Long> branchFee = new HashMap <String, Long>(0);
 		
 		
 		//宣言
-		BufferedReader bh = null;
+		BufferedReader branchReader = null;
 		
 		
 		//(例外がありえるからtry必要
@@ -55,14 +56,14 @@ public class CalculateSales {
 			
 			//ファイルを開く(支店定義）(エスケープシーケンス)
 			//文字列の受け取り
-			bh = new BufferedReader(new FileReader (args[0] + File.separator +"branch.lst"));
+			branchReader = new BufferedReader(new FileReader (args[0] + File.separator +"branch.lst"));
 			
-			String b;
+			String branchLine;
 			
 			//内容がnullじゃなかったら1行ずつ格納　カンマでキーとかを分ける
 			//ファイルのフォーマットが不正かの確認
-			while((b = bh.readLine()) != null){
-				String[] bran = b.split(",", 0);
+			while((branchLine = branchReader.readLine()) != null){
+				String[] bran = branchLine.split(",", 0);
 				//3桁の数字
 				if(!(bran[0].matches("\\d{3}"))){
 					System.out.println("支店定義ファイルのフォーマットが不正です");
@@ -76,7 +77,7 @@ public class CalculateSales {
 				branch.put(bran[0], bran[1]);
 				
 				//売上-合計　初期化
-				branchrevenue.put(bran[0], 0l);
+				branchFee.put(bran[0], 0l);
 			}
 			
 			
@@ -89,8 +90,8 @@ public class CalculateSales {
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(bh != null){
-					bh.close();
+				if(branchReader != null){
+					branchReader.close();
 				}
 				
 			} catch (IOException e) {
@@ -103,8 +104,8 @@ public class CalculateSales {
 		
 		
 		//商品定義ファイルがあるかの確認
-		File file1 = new File(args[0]+ File.separator + "commodity.lst");
-		if (!file1.exists()){
+		File commodityFile = new File(args[0]+ File.separator + "commodity.lst");
+		if (!commodityFile.exists()){
 			System.out.println("商品定義ファイルが存在しません。");
 			return;
 		}
@@ -116,25 +117,25 @@ public class CalculateSales {
 		
 		//3.2　Mapを使用
 		//商品-合計金額
-		HashMap<String, Long>productrevenue = new HashMap <String, Long>();
+		HashMap<String, Long>commodityFee = new HashMap <String, Long>();
 		
 		
 		//宣言
-		BufferedReader cd = null;
+		BufferedReader commodityReader = null;
 		
 		
 		//2.1　表示
 		try{
 			//ファイルを開く(支店定義）(エスケープシーケンス)
 			//文字列の受け取り
-			cd = new BufferedReader(new FileReader (args[0] + File.separator + "commodity.lst"));
+			commodityReader = new BufferedReader(new FileReader (args[0] + File.separator + "commodity.lst"));
 
-			String c;
+			String commodityLine;
 
 			//内容がnullじゃなかったら1行ずつ格納　カンマでキーとかを分ける
 			//ファイルのフォーマットが不正かの確認
-			while((c = cd.readLine()) != null){
-				String[] commod = c.split(",", 0);
+			while((commodityLine = commodityReader.readLine()) != null){
+				String[] commod = commodityLine.split(",", 0);
 				//英数字計8桁
 				if(!commod[0] .matches("^[a-zA-Z0-9]{8}$")){
 					System.out.println("商品定義ファイルのフォーマットが不正です");
@@ -148,7 +149,7 @@ public class CalculateSales {
 				commodity.put(commod[0], commod[1]);
 				
 				//商品-合計　初期化
-				productrevenue.put(commod[0], 0l);
+				commodityFee.put(commod[0], 0l);
 			}
 			
 			
@@ -162,8 +163,8 @@ public class CalculateSales {
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(cd != null){
-					cd.close();
+				if(commodityReader != null){
+					commodityReader.close();
 				}
 				
 			} catch (IOException e) {
@@ -178,8 +179,8 @@ public class CalculateSales {
 		
 		//3.1
 		//ファイル名の取得
-		File file3 = new File(args[0]);
-		File[] files1= file3.listFiles();
+		File allName = new File(args[0]);
+		File[] allFiles= allName.listFiles();
 		
 		//List宣言 rcd
 		List<File> rcd = new ArrayList<File>();
@@ -193,17 +194,17 @@ public class CalculateSales {
 		
 		
 		//ファイル名から.rcdを厳選
-		for(int i = 0; i < files1.length; i++){
+		for(int i = 0; i < allFiles.length; i++){
 			
 			//getNameメソッドを使ってfiles1[]をString型に変更
-			//→matchesでファイル名.rcdを厳選
-			if(files1[i].getName().matches("\\d{8}"+".rcd")){
+			//→matchesでファイル名.rcdを厳選 (ファイルであることも)
+			if(allFiles[i].getName().matches("\\d{8}"+".rcd") && (allFiles[i].isFile())){
 				
 				//List:rcdに.rcdファイルを格納
-				rcd.add(files1[i]);
+				rcd.add(allFiles[i]);
 				
 				//List:rcdnameにファイル名の拡数字のみを格納
-				rcdname.add(files1[i].getName().substring(0,8));
+				rcdname.add(allFiles[i].getName().substring(0,8));
 				
 			}
 		}
@@ -226,68 +227,68 @@ public class CalculateSales {
 		//各情報の取り出し　list
 		
 		String branchcode = null;//支店コード
-		String productcode = null;//商品コード
-		long revenue1 = 0;//各-合計金額
-		long brevenue = 0;//支店-合計金額
-		long prevenue = 0;//商品-合計金額
+		String commoditycode = null;//商品コード
+		long totalFee = 0;//各-合計金額
+		long branchTotal = 0;//支店-合計金額
+		long commodityTotal = 0;//商品-合計金額
 		
 		
-		String r;
-		BufferedReader rd = null;
+		String rcdLine;
+		BufferedReader rcdReader = null;
 		
 		try{
 			
 			//表示のためのfor
 			for (int i = 0; i < rcd.size(); i++){
-				rd = new BufferedReader( new FileReader (rcd.get(i)));
+				rcdReader = new BufferedReader( new FileReader (rcd.get(i)));
 				
 				//1ファイルずつのリストの作成
-				List <String> datafile = new ArrayList<String> ();
+				List <String> eachList = new ArrayList<String> ();
 				
 				//1行ずつリストに格納
-				while((r = rd.readLine()) != null){
-					datafile.add(r);
+				while((rcdLine = rcdReader.readLine()) != null){
+					eachList.add(rcdLine);
 				}
 				
-				if(datafile.size() != 3){
-					System.out.println("売上ファイルのフォーマットが不正です");
+				if(eachList.size() != 3){
+					System.out.println(rcd.get(i) + "のフォーマットが不正です");
 					return;
 				}
 				
 				
 				//各種データを各変数に格納
-				branchcode = datafile.get(0);
-				productcode = datafile.get(1);
-				revenue1 = Long.parseLong(datafile.get(2));
+				branchcode = eachList.get(0);
+				commoditycode = eachList.get(1);
+				totalFee = Long.parseLong(eachList.get(2));
 				
 				
 				//上記データと1/2の定義ファイルのmapを比較、各項目がちゃんとあるか確認
 				if (!(branch.containsKey(branchcode))){
-					System.out.println("売上ファイルの支店コードが不正です");
+					System.out.println(rcd.get(i) + "の支店コードが不正です");
 					return;
 				}
-				if (!(commodity.containsKey(productcode))){
-					System.out.println("売上ファイルの商品コードが不正です");
+				if (!(commodity.containsKey(commoditycode))){
+					System.out.println(rcd.get(i) + "の商品コードが不正です");
 					return;
 				}
 				
 				
 				//合計を計算
-				long brankari = branchrevenue.get(branchcode);
-				brevenue = brankari + revenue1;
+				long brankari = branchFee.get(branchcode);
+				branchTotal = brankari + totalFee;
 				
-				long prekari = productrevenue.get(productcode);
-				prevenue = prekari + revenue1;
+				long prekari = commodityFee.get(commoditycode);
+				commodityTotal = prekari + totalFee;
 				
 				
-				if((brevenue >= 9999999999.9) || (prevenue >= 9999999999.9)){
+				if((branchTotal >= 9999999999.9) || (commodityTotal >= 9999999999.9)){
 					System.out.println("合計金額が10桁を超えました");
 					return;
 				}
 				
 				//mapに入力
-				branchrevenue.put (branchcode , brevenue);
-				productrevenue.put (productcode , prevenue);
+				branchFee.put (branchcode , branchTotal);
+				commodityFee.put (commoditycode , commodityTotal);
 				
 				
 				
@@ -304,8 +305,8 @@ public class CalculateSales {
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(rd != null){
-					rd.close();
+				if(rcdReader != null){
+					rcdReader.close();
 				}
 			} catch (IOException e) {
 				// TODO 自動生成された catch ブロック
@@ -319,25 +320,25 @@ public class CalculateSales {
 		//ファイルを作る
 		//支店別集計ファイルの作成
 		
-		FileWriter fw = null;
+		FileWriter branchWriter = null;
 		
 		
 		try {
 			
-			File newfile = new File (args[0] + File.separator +"branch.out");
+			File branchNewfile = new File (args[0] + File.separator +"branch.out");
 			//5.
-			if (!(newfile.createNewFile())){
+			if (!(branchNewfile.createNewFile())){
 				System.out.println("予期せぬエラーが発生しました");
 				return;
 			}
 			
 			//書き込みの宣言
-			fw = new FileWriter(args[0] + File.separator +"branch.out");
+			branchWriter = new FileWriter(args[0] + File.separator +"branch.out");
 			
 			
 			//List作成
-			List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>(branchrevenue.entrySet());
-			Collections.sort(entries,new Comparator<Entry<String, Long>>() {
+			List<Entry<String, Long>> branchEntries = new ArrayList<Entry<String, Long>>(branchFee.entrySet());
+			Collections.sort(branchEntries,new Comparator<Entry<String, Long>>() {
 				//comparatorで値の比較
 				public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
 					return o2.getValue().compareTo(o1.getValue());   //降順
@@ -346,8 +347,8 @@ public class CalculateSales {
 			
 			//書き込み
 			//1つのkey・2つのmapからデータの取り出し
-			for(Entry<String, Long> bar : entries){
-				fw.write(bar.getKey() + "," + branch.get(bar.getKey()) + "," + bar.getValue() + System.getProperty("line.separator"));
+			for(Entry<String, Long> beData : branchEntries){
+				branchWriter.write(beData.getKey() + "," + branch.get(beData.getKey()) + "," + beData.getValue() + System.getProperty("line.separator"));
 				
 			}
 			
@@ -359,8 +360,8 @@ public class CalculateSales {
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(fw != null){
-					fw.close();
+				if(branchWriter != null){
+					branchWriter.close();
 				}
 			} catch (IOException e) {
 				// TODO 自動生成された catch ブロック
@@ -372,25 +373,25 @@ public class CalculateSales {
 		
 		//4.2商品別集計ファイルの作成
 		
-		FileWriter fw1 = null;
+		FileWriter commodityWriter = null;
 		
 		
 		try {
 			
-			File newfile1 = new File (args[0] + File.separator +"commodity.out");
+			File commodityNewfile = new File (args[0] + File.separator +"commodity.out");
 			//5.
-			if (!(newfile1.createNewFile())){
+			if (!(commodityNewfile.createNewFile())){
 				System.out.println("予期せぬエラーが発生しました");
 				return;
 			}
 			
 			//書き込みの宣言
-			fw1 = new FileWriter(args[0] + File.separator + "commodity.out");
+			commodityWriter = new FileWriter(args[0] + File.separator + "commodity.out");
 			
 			
 			//List作成
-			List<Entry<String, Long>> entries1 = new ArrayList<Entry<String, Long>>(productrevenue.entrySet());
-			Collections.sort(entries1, new Comparator<Entry<String, Long>>() {
+			List<Entry<String, Long>> commodityEntries = new ArrayList<Entry<String, Long>>(commodityFee.entrySet());
+			Collections.sort(commodityEntries, new Comparator<Entry<String, Long>>() {
 				//comparatorで値の比較
 				public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
 					return o2.getValue().compareTo(o1.getValue());   //降順
@@ -399,8 +400,8 @@ public class CalculateSales {
 			
 			//書き込み
 			//1つのkey・2つのmapからデータの取り出し
-			for(Entry<String, Long> ber : entries1){
-				fw1.write(ber.getKey() + "," + commodity.get(ber.getKey()) + "," + ber.getValue() + System.getProperty("line.separator") );
+			for(Entry<String, Long> ceData : commodityEntries){
+				commodityWriter.write(ceData.getKey() + "," + commodity.get(ceData.getKey()) + "," + ceData.getValue() + System.getProperty("line.separator") );
 				
 			}
 			
@@ -413,8 +414,8 @@ public class CalculateSales {
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(fw1 != null){
-					fw1.close();
+				if(commodityWriter != null){
+					commodityWriter.close();
 				}
 			} catch (IOException e) {
 				// TODO 自動生成された catch ブロック
