@@ -12,7 +12,82 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 public class CalculateSales {
-
+	
+	
+	public static boolean fileRead(String path,HashMap<String, String> contents, HashMap<String, Long> fee,String error, String conditions, String notFound){
+		
+		
+		
+		//宣言
+		BufferedReader reader = null;
+		
+		
+		//支店定義ファイルがあるかの確認
+		File definitionFile = new File(path);
+		if (!definitionFile.exists()){
+			System.out.println(notFound);
+			return false;
+		}
+		
+		
+		//(例外がありえるからtry必要
+		//1.1　表示
+		try{
+			
+			//ファイルを開く(支店定義）(エスケープシーケンス)
+			//文字列の受け取り
+			reader = new BufferedReader(new FileReader (path));
+			
+			String line;
+			
+			//内容がnullじゃなかったら1行ずつ格納　カンマでキーとかを分ける
+			//ファイルのフォーマットが不正かの確認
+			while((line = reader.readLine()) != null){
+				String[] lineContent = line.split(",", 0);
+				//3桁の数字
+				if(!(lineContent[0].matches(conditions))){
+					System.out.println(error);
+					return false;
+				}
+				//配列が2個
+				if( lineContent.length != 2){
+					System.out.println(error);
+					return false;
+				}
+				contents.put(lineContent[0], lineContent[1]);
+				
+				//売上-合計　初期化
+				fee.put(lineContent[0], 0l);
+			}
+			
+			
+		}catch(IOException e){
+			//5.もし何かしらで動かなかった場合の対処
+			System.out.println("予期せぬエラーが発生しました");
+			return false;
+			
+		}finally{
+			
+			//内容がnullになったらストリームを閉じる　必ず必要
+			try {
+				if(reader != null){
+					reader.close();
+				}
+				
+			} catch (IOException e) {
+				// TODO 自動生成された catch ブロック
+				System.out.println("予期せぬエラーが発生しました");
+				return false;
+			}
+		}
+		
+		return false;
+		
+	}
+	
+	
+	
+	
 	public static void main(String[]args) {
 		
 		
@@ -22,6 +97,7 @@ public class CalculateSales {
 			return;
 		}
 		
+		
 		//5.args[0]があるかないか
 		File argsFile = new File(args[0]);
 		if (!( argsFile.exists())){
@@ -30,153 +106,34 @@ public class CalculateSales {
 		}
 		
 		
-		
-		//1.1支店定義ファイルがあるかの確認
-		File branchFile = new File(args[0] + File.separator + "branch.lst");
-		if (!( branchFile.exists())){
-			System.out.println("支店定義ファイルが存在しません");
-			return;
-		}
-		
-		
 		//1.2　Mapを使用
 		HashMap<String, String> branch = new HashMap <String, String>();
-		
 		
 		//3.2　Mapを使用
 		//支店-合計金額
 		HashMap<String, Long> branchFee = new HashMap <String, Long>(0);
 		
 		
-		//宣言
-		BufferedReader branchReader = null;
-		
-		
-		//(例外がありえるからtry必要
-		//1.1　表示
-		try{
-			
-			//ファイルを開く(支店定義）(エスケープシーケンス)
-			//文字列の受け取り
-			branchReader = new BufferedReader(new FileReader (args[0] + File.separator +"branch.lst"));
-			
-			String branchLine;
-			
-			//内容がnullじゃなかったら1行ずつ格納　カンマでキーとかを分ける
-			//ファイルのフォーマットが不正かの確認
-			while((branchLine = branchReader.readLine()) != null){
-				String[] bran = branchLine.split(",", 0);
-				//3桁の数字
-				if(!(bran[0].matches("\\d{3}"))){
-					System.out.println("支店定義ファイルのフォーマットが不正です");
-					return;
-				}
-				//配列が2個
-				if( bran.length != 2){
-					System.out.println("支店定義ファイルのフォーマットが不正です");
-					return;
-				}
-				branch.put(bran[0], bran[1]);
-				
-				//売上-合計　初期化
-				branchFee.put(bran[0], 0l);
-			}
-			
-			
-		}catch(IOException e){
-			//5.もし何かしらで動かなかった場合の対処
-			System.out.println("予期せぬエラーが発生しました");
-			return;
-			
-		}finally{
-			
-			//内容がnullになったらストリームを閉じる　必ず必要
-			try {
-				if(branchReader != null){
-					branchReader.close();
-				}
-				
-			} catch (IOException e) {
-				// TODO 自動生成された catch ブロック
-				System.out.println("予期せぬエラーが発生しました");
-				return;
-			}
-		}
-		
-		
-		
-		//商品定義ファイルがあるかの確認
-		File commodityFile = new File(args[0]+ File.separator + "commodity.lst");
-		if (!commodityFile.exists()){
-			System.out.println("商品定義ファイルが存在しません");
-			return;
-		}
-		
-		
 		//2.2　Mapを使用
 		HashMap<String, String>commodity = new HashMap <String, String>();
-		
 		
 		//3.2　Mapを使用
 		//商品-合計金額
 		HashMap<String, Long>commodityFee = new HashMap <String, Long>();
 		
-		
 		//宣言
-		BufferedReader commodityReader = null;
+		String branchInPath = (args[0] + File.separator +"branch.lst");
+		String branchError = ("支店定義ファイルのフォーマットが不正です");
+		String branchConditions = ("\\d{3}");
+		String branchFound = ("支店定義ファイルが存在しません");
 		
+		String commondityInPath = (args[0] + File.separator +"commodity.lst");
+		String commodifyError = ("商品定義ファイルのフォーマットが不正です");
+		String commodityConditions = ("^[a-zA-Z0-9]{8}$");
+		String commodityFound = ("商品定義ファイルが存在しません");		
 		
-		//2.1　表示
-		try{
-			//ファイルを開く(支店定義）(エスケープシーケンス)
-			//文字列の受け取り
-			commodityReader = new BufferedReader(new FileReader (args[0] + File.separator + "commodity.lst"));
-
-			String commodityLine;
-
-			//内容がnullじゃなかったら1行ずつ格納　カンマでキーとかを分ける
-			//ファイルのフォーマットが不正かの確認
-			while((commodityLine = commodityReader.readLine()) != null){
-				String[] commod = commodityLine.split(",", 0);
-				//英数字計8桁
-				if(!commod[0] .matches("^[a-zA-Z0-9]{8}$")){
-					System.out.println("商品定義ファイルのフォーマットが不正です");
-					return;
-				}
-				//配列が2個
-				if( commod.length != 2){
-					System.out.println("商品定義ファイルのフォーマットが不正です");
-					return;
-				}
-				commodity.put(commod[0], commod[1]);
-				
-				//商品-合計　初期化
-				commodityFee.put(commod[0], 0l);
-			}
-			
-			
-		}catch(IOException e){
-			
-			//もし何かしらで動かなかった場合の対処
-			System.out.println("予期せぬエラーが発生しました");
-			return;
-			
-		}finally{
-			
-			//内容がnullになったらストリームを閉じる　必ず必要
-			try {
-				if(commodityReader != null){
-					commodityReader.close();
-				}
-				
-			} catch (IOException e) {
-				// TODO 自動生成された catch ブロック
-				System.out.println("予期せぬエラーが発生しました");
-				return;
-			}
-		}
-		
-		
+		fileRead(branchInPath,branch,branchFee,branchError,branchConditions,branchFound);
+		fileRead(commondityInPath,commodity,commodityFee,commodifyError,commodityConditions,commodityFound);
 		
 		
 		//3.1
@@ -194,7 +151,6 @@ public class CalculateSales {
 		
 		
 		
-		
 		//ファイル名から.rcdを厳選
 		for(int i = 0; i < allFiles.length; i++){
 			
@@ -205,8 +161,10 @@ public class CalculateSales {
 				//List:rcdに.rcdファイルを格納
 				rcd.add(allFiles[i]);
 				
+				
 				//List:rcdnameにファイル名の各数字のみを格納
 				rcdname.add(allFiles[i].getName().substring(0,8));
+				
 				
 			}
 		}
@@ -218,6 +176,7 @@ public class CalculateSales {
 		//ファイルが歯抜けになっているか（1からファイルが始まる時のみ稼動）
 		//（例えば10からファイル名が始まる時にどうするのかも追加したい）
 		
+		
 		if(rcdname.size() != Integer.valueOf(rcdname.get(rcdname.size()-1))){
 			//if(rcds.isDirectory)
 			System.out.println("売上ファイル名が連番になっていません");
@@ -227,6 +186,7 @@ public class CalculateSales {
 		
 		//3.2
 		//各情報の取り出し　list
+		
 		
 		String branchcode = null;//支店コード
 		String commoditycode = null;//商品コード
@@ -238,19 +198,24 @@ public class CalculateSales {
 		String rcdLine;
 		BufferedReader rcdReader = null;
 		
+		
 		try{
+			
 			
 			//表示のためのfor
 			for (int i = 0; i < rcd.size(); i++){
 				rcdReader = new BufferedReader( new FileReader (rcd.get(i)));
 				
+				
 				//1ファイルずつのリストの作成
 				List <String> eachList = new ArrayList<String> ();
+				
 				
 				//1行ずつリストに格納
 				while((rcdLine = rcdReader.readLine()) != null){
 					eachList.add(rcdLine);
 				}
+				
 				
 				if(eachList.size() != 3){
 					System.out.println(allFiles[i].getName() + "のフォーマットが不正です");
@@ -279,6 +244,7 @@ public class CalculateSales {
 				long branchPrice = branchFee.get(branchcode);
 				branchTotal = branchPrice + totalFee;
 				
+				
 				long commodityPrice = commodityFee.get(commoditycode);
 				commodityTotal = commodityPrice + totalFee;
 				
@@ -288,20 +254,22 @@ public class CalculateSales {
 					return;
 				}
 				
+				
 				//mapに入力
 				branchFee.put (branchcode , branchTotal);
 				commodityFee.put (commoditycode , commodityTotal);
 				
 				
-				
 			}
-		
-		
+			
+			
+			
 		}catch(IOException | NumberFormatException e){
 			
 			//もし何かしらで動かなかった場合の対処
 			System.out.println("予期せぬエラーが発生しました");
 			return;
+			
 			
 		}finally{
 			//内容がnullになったらストリームを閉じる　必ず必要
@@ -317,114 +285,82 @@ public class CalculateSales {
 		}
 		
 		
+		//宣言
+		String branchOutPath = (args[0] + File.separator +"branch.out");
+		String commodityOutPath = (args[0] + File.separator +"commodity.out");
+		
+		
+		
+		fileWrite(branchOutPath,branchFee,branch);
+		fileWrite(commodityOutPath,commodityFee,commodity);
+		
+		
+		
+	}
+	
+	
+	public static boolean fileWrite (String path, HashMap<String,Long> fee, HashMap<String,String> contents){
+		
+		
 		//4.出力
 		//ファイルを作る
-		//支店別集計ファイルの作成
+		//支店別集計ファイル・商品別集計ファイルの作成
 		
-		FileWriter branchWriter = null;
 		
+		FileWriter writer = null;
 		
 		try {
 			
-			File branchNewfile = new File (args[0] + File.separator +"branch.out");
+			File newfile = new File (path);
 			//5.
-			if (!(branchNewfile.createNewFile())){
+			if (!(newfile.createNewFile())){
 				System.out.println("予期せぬエラーが発生しました");
-				return;
+				return false;
 			}
 			
 			//書き込みの宣言
-			branchWriter = new FileWriter(args[0] + File.separator +"branch.out");
+			writer = new FileWriter(path);
 			
 			
 			//List作成
-			List<Entry<String, Long>> branchEntries = new ArrayList<Entry<String, Long>>(branchFee.entrySet());
-			Collections.sort(branchEntries,new Comparator<Entry<String, Long>>() {
+			List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>(fee.entrySet());
+			Collections.sort(entries,new Comparator<Entry<String, Long>>() {
 				//comparatorで値の比較
 				public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
 					return o2.getValue().compareTo(o1.getValue());   //降順
 				}
 			});
 			
+			
 			//書き込み
 			//1つのkey・2つのmapからデータの取り出し
-			for(Entry<String, Long> beData : branchEntries){
-				branchWriter.write(beData.getKey() + "," + branch.get(beData.getKey()) + "," + beData.getValue() + System.getProperty("line.separator"));
+			for(Entry<String, Long> data : entries){
+				writer.write(data.getKey() + "," + contents.get(data.getKey()) + "," + data.getValue() + System.getProperty("line.separator"));
 				
 			}
+			
 			
 		}catch(IOException e){
 			System.out.println("例外が発生しました");
-			return;
-		
-		}finally{
+			return false;
 			
-			//内容がnullになったらストリームを閉じる　必ず必要
-			try {
-				if(branchWriter != null){
-					branchWriter.close();
-				}
-			} catch (IOException e) {
-				// TODO 自動生成された catch ブロック
-				System.out.println("予期せぬエラーが発生しました");
-				return;
-			}
-		}
-		
-		
-		//4.2商品別集計ファイルの作成
-		
-		FileWriter commodityWriter = null;
-		
-		
-		try {
-			
-			File commodityNewfile = new File (args[0] + File.separator +"commodity.out");
-			//5.
-			if (!(commodityNewfile.createNewFile())){
-				System.out.println("予期せぬエラーが発生しました");
-				return;
-			}
-			
-			//書き込みの宣言
-			commodityWriter = new FileWriter(args[0] + File.separator + "commodity.out");
-			
-			
-			//List作成
-			List<Entry<String, Long>> commodityEntries = new ArrayList<Entry<String, Long>>(commodityFee.entrySet());
-			Collections.sort(commodityEntries, new Comparator<Entry<String, Long>>() {
-				//comparatorで値の比較
-				public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
-					return o2.getValue().compareTo(o1.getValue());   //降順
-				}
-			});
-			
-			//書き込み
-			//1つのkey・2つのmapからデータの取り出し
-			for(Entry<String, Long> ceData : commodityEntries){
-				commodityWriter.write(ceData.getKey() + "," + commodity.get(ceData.getKey()) + "," + ceData.getValue() + System.getProperty("line.separator") );
-				
-			}
-			
-		}catch(IOException e){
-			
-			System.out.println("予期せぬエラーが発生しました");
-			return;
 			
 		}finally{
 			
 			//内容がnullになったらストリームを閉じる　必ず必要
 			try {
-				if(commodityWriter != null){
-					commodityWriter.close();
+				if(writer != null){
+					writer.close();
 				}
 			} catch (IOException e) {
 				// TODO 自動生成された catch ブロック
 				System.out.println("予期せぬエラーが発生しました");
-				return;
+				return false;
 			}
 		}
+		return false;
+		
 		
 	}
-}
 
+}
