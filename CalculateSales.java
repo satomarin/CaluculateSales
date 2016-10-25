@@ -297,7 +297,7 @@ public class CalculateSales {
 			}
 			
 		}catch(IOException e){
-			System.out.println(path + "予期せぬエラーが発生しました");
+			System.out.println("予期せぬエラーが発生しました");
 			return false;
 			
 		}finally{
