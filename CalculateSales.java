@@ -101,17 +101,15 @@ public class CalculateSales {
 		
 		//宣言
 		String branchInPath = (args[0] + File.separator + "branch.lst");
-		String branchName = ("支店");
 		String branchConditions = ("\\d{3}");
 		
 		String commondityInPath = (args[0] + File.separator + "commodity.lst");
-		String commodifyName = ("商品");
 		String commodityConditions = ("^[a-zA-Z0-9]{8}$");
 		
-		if(!fileRead(branchInPath, branch, branchFee, branchName, branchConditions)) {
+		if(!fileRead(branchInPath, branch, branchFee, "支店", branchConditions)) {
 			return;
 		}
-		if(!fileRead(commondityInPath, commodity, commodityFee, commodifyName, commodityConditions)) {
+		if(!fileRead(commondityInPath, commodity, commodityFee, "商品", commodityConditions)) {
 			return;
 		}
 		
@@ -128,16 +126,16 @@ public class CalculateSales {
 		for(int i = 0; i < allFiles.length; i++) {
 			//getNameメソッドを使ってfiles1[]をString型に変更
 			//→matchesでファイル名.rcdを厳選 (ファイルであることも)
-			if((allFiles[i].isFile()) && allFiles[i].getName().matches("\\d{8}"+".rcd")) {
+			if((allFiles[i].isFile()) && allFiles[i].getName().matches("\\d{8}" + ".rcd")) {
 				//List:rcdに.rcdファイルを格納
 				rceFiles.add(allFiles[i]);
 				//List:rcdnameにファイル名の各数字のみを格納
-				rcdNames.add(allFiles[i].getName().substring(0,8));
+				rcdNames.add(allFiles[i].getName().substring(0, 8));
 			}
 		}
 		
 		//rcdnameを使わないと↓
-		//rcd.get(rcd.size() -1).getName().substring(0,8)
+		//rcd.get(rcd.size() -1).getName().substring(0, 8)
 		//ファイルが歯抜けになっているか（1からファイルが始まる時のみ稼動）
 		//（例えば10からファイル名が始まる時にどうするのかも追加したい）
 		if(rcdNames.size() != Integer.valueOf(rcdNames.get(rcdNames.size() - 1))) {
@@ -146,39 +144,32 @@ public class CalculateSales {
 			return;
 		}
 		
-		//3.2
-		//各情報の取り出し　list
-		String branchcode = null;//支店コード
-		String commoditycode = null;//商品コード
-		long individualFee = 0;//各-合計金額
-		long branchTotal = 0;//支店-合計金額
-		long commodityTotal = 0;//商品-合計金額
-		
-		String rcdLine;
 		BufferedReader rcdReader = null;
 		
 		try {
 			//表示のためのfor
 			for(int i = 0; i < rceFiles.size(); i++) {
-				rcdReader = new BufferedReader( new FileReader (rceFiles.get(i)));
+				rcdReader = new BufferedReader(new FileReader(rceFiles.get(i)));
 				
 				//1ファイルずつのリストの作成
-				List <String> eachList = new ArrayList<String> ();
+				List <String> individualList = new ArrayList<String> ();
 				
 				//1行ずつリストに格納
+				String rcdLine;
 				while((rcdLine = rcdReader.readLine()) != null) {
-					eachList.add(rcdLine);
+					individualList.add(rcdLine);
 				}
 				
-				if(eachList.size() != 3) {
+				if(individualList.size() != 3) {
 					System.out.println(allFiles[i].getName() + "のフォーマットが不正です");
 					return;
 				}
 				
 				//各種データを各変数に格納
-				branchcode = eachList.get(0);
-				commoditycode = eachList.get(1);
-				individualFee = Long.parseLong(eachList.get(2));
+				String branchcode = individualList.get(0);
+				String commoditycode = individualList.get(1);
+				long individualFee = 0;//各-合計金額
+				individualFee = Long.parseLong(individualList.get(2));
 				
 				//上記データと1/2の定義ファイルのmapを比較、各項目がちゃんとあるか確認
 				if(!branch.containsKey(branchcode)) {
@@ -191,7 +182,9 @@ public class CalculateSales {
 				}
 				
 				//合計を計算
+				long branchTotal = 0;//支店-合計金額
 				branchTotal = branchFee.get(branchcode) + individualFee;
+				long commodityTotal = 0;//商品-合計金額
 				commodityTotal = commodityFee.get(commoditycode) + individualFee;
 				
 				if((branchTotal >= 9999999999l) || (commodityTotal >= 9999999999l)) {
@@ -200,8 +193,8 @@ public class CalculateSales {
 				}
 				
 				//mapに入力
-				branchFee.put (branchcode , branchTotal);
-				commodityFee.put (commoditycode , commodityTotal);
+				branchFee.put (branchcode, branchTotal);
+				commodityFee.put (commoditycode, commodityTotal);
 			}
 			
 		} catch(IOException e) {
@@ -238,7 +231,7 @@ public class CalculateSales {
 		}
 	}
 	
-	public static boolean fileWrite (String path, HashMap <String,Long> fee, HashMap <String,String> contents) {
+	public static boolean fileWrite (String path, HashMap <String, Long> fee, HashMap <String, String> contents) {
 		
 		//4.出力
 		//ファイルを作る
